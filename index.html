@@ -1046,7 +1046,23 @@ function maybeInstallTip(){
   $("installTip").hidden = false;
 }
 $("installClose").onclick = () => { $("installTip").hidden = true; prefs.set("installTipClosed", true); };
-if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+/* Aggiornamenti: quando su GitHub c'è una versione nuova dell'app, la carica da sola
+   (solo se non stai compilando una scheda, per non perdere quello che hai scritto). */
+if ("serviceWorker" in navigator) {
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloading) return;
+    const busy = !$("scrim").hidden || !$("catScrim").hidden || !$("whenScrim").hidden || uploading > 0;
+    if (busy) { toast("È disponibile una nuova versione: riapri l'app per vederla."); return; }
+    reloading = true; location.reload();
+  });
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").then(reg => {
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") reg.update().catch(() => {}); });
+    }).catch(() => {});
+  });
+}
 
 /* ---------- connessione ---------- */
 function updateOnline(){ $("offline").hidden = navigator.onLine; }
