@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ripostiglio</title>
+<meta name="description" content="Inventario delle tue cose: dove sono, quando le usi, quando le hai comprate.">
+<meta name="theme-color" content="#1F5C4A" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111714" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ripostiglio">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: una colonna su telefono (lista + pulsante flottante), griglia di schede con foto su PC; modifica in un pannello che sale dal basso */
+:root{
+  --bg:#EDF0EC; --surface:#FFFFFF; --ink:#18231E; --muted:#5D6B64; --line:#D3DAD4;
+  --accent:#1F5C4A; --accent-ink:#FFFFFF; --accent-soft:#DCEBE4; --tag:#F2C230; --tag-ink:#2A2205; --warn:#B8410F; --warn-bg:#FBE9DF;
+  --shadow:0 1px 2px rgba(24,35,30,.06),0 6px 20px rgba(24,35,30,.08);
+  --f-display:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#111714; --surface:#1A221E; --ink:#E6ECE8; --muted:#93A39A; --line:#2C3832;
+  --accent:#62BC9D; --accent-ink:#0D1A14; --accent-soft:#1F3A30; --tag:#E9B825; --tag-ink:#231B02; --warn:#F2955E; --warn-bg:#3A2418;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); color-scheme:dark}}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+img{max-width:100%}
+[hidden]{display:none!important}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px));padding-block:calc(20px + env(safe-area-inset-top,0px)) calc(110px + env(safe-area-inset-bottom,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Header */
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px;margin-bottom:18px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,6vw,40px);letter-spacing:-.02em;line-height:1;margin:0}
+.sub{color:var(--muted);margin:6px 0 0;font-size:14px}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:92px}
+.stat b{display:block;font-family:var(--f-mono);font-size:18px;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+
+/* Tools */
+.tools{display:grid;gap:10px;margin-bottom:14px}
+.searchrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 12px}
+.search input{flex:1;min-width:0;border:0;background:transparent;padding:12px 0;outline:none}
+.search svg{flex:none;color:var(--muted)}
+.searchrow select{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 10px;height:46px;width:9.5rem;min-width:0}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;align-items:center}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:500;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .n{font-family:var(--f-mono);font-size:11px;opacity:.65;margin-left:4px}
+.chips .lab{flex:none;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:2px}
+#types .chip{font-size:12.5px;padding:5px 11px}
+#types .chip[aria-pressed="true"]{background:var(--tag);border-color:var(--tag);color:var(--tag-ink)}
+
+/* List */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}
+@media (max-width:400px){.grid{grid-template-columns:1fr}}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;grid-template-columns:76px minmax(0,1fr);gap:12px;min-width:0}
+.thumb{position:relative;width:76px;height:76px;border-radius:10px;overflow:hidden;border:0;padding:0;background:var(--bg);display:grid;place-items:center;color:var(--muted)}
+.thumb img{width:100%;height:100%;object-fit:contain;display:block}
+.thumb .count{position:absolute;right:4px;bottom:4px;background:rgba(10,16,13,.7);color:#fff;font-family:var(--f-mono);font-size:10.5px;padding:1px 6px;border-radius:6px}
+.body{display:grid;gap:7px;min-width:0;align-content:start}
+.item-main{min-width:0;text-align:left;background:none;border:0;padding:0;display:grid;gap:3px}
+.item-name{font-weight:600;font-size:16px;line-height:1.25;overflow-wrap:anywhere}
+.item-loc{font-family:var(--f-mono);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;overflow-wrap:anywhere}
+.tagrow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.tag{font-family:var(--f-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;background:var(--tag);color:var(--tag-ink);padding:3px 8px 3px 14px;border-radius:3px 6px 6px 3px;position:relative;white-space:nowrap}
+.tag::before{content:"";position:absolute;left:5px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:var(--surface)}
+.tag .t{opacity:.7}
+.when{font-size:11.5px;font-weight:600;background:var(--accent-soft);color:var(--ink);padding:2px 8px;border-radius:999px}
+.meta{font-size:12.5px;color:var(--muted)}
+
+/* Empty / banner */
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:16px;padding:32px 20px;text-align:center;display:grid;gap:10px;justify-items:center}
+.empty h2{font-family:var(--f-display);font-weight:600;font-size:22px;margin:0;text-wrap:balance}
+.empty p{margin:0;color:var(--muted);max-width:46ch}
+.empty .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.banner{font-size:13px;background:var(--warn-bg);color:var(--ink);border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.banner.info{background:var(--accent-soft)}
+.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;margin-top:22px;color:var(--muted);font-size:13px}
+.foot .links{display:flex;gap:16px;flex-wrap:wrap}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:3px;font-size:13px;text-transform:none;letter-spacing:0}
+
+/* Buttons */
+.btn{border:0;border-radius:12px;height:44px;padding:0 18px;font-weight:600}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.primary:disabled{opacity:.55;cursor:wait}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.small{height:36px;padding:0 12px;font-size:13px}
+.btn.danger{background:transparent;border:1px solid var(--warn);color:var(--warn)}
+.btn.danger.armed{background:var(--warn);color:var(--surface)}
+.fab{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));height:56px;padding:0 22px 0 18px;border-radius:18px;border:0;background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);z-index:5}
+
+/* Accesso */
+.auth{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:calc(24px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.authcard{width:100%;max-width:400px;display:grid;gap:18px}
+.authcard .logo{width:64px;height:64px;border-radius:16px}
+.authcard h1{font-size:36px}
+.authcard form{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;gap:14px}
+.authcard .msg{font-size:13.5px;border-radius:10px;padding:10px 12px;background:var(--accent-soft)}
+.authcard .msg.err{background:var(--warn-bg)}
+.authcard .alt{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* Sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,16,13,.45);z-index:10;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:580px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow);overscroll-behavior:contain}
+@media (min-width:700px){.scrim{align-items:center}.sheet{border-radius:20px;padding:24px}}
+.sheet h2{font-family:var(--f-display);font-weight:600;font-size:22px;margin:0 0 16px}
+.sheet .intro{margin:-8px 0 14px;color:var(--muted);font-size:13px}
+.form{display:grid;gap:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.two{grid-template-columns:1fr}}
+.lbl{display:grid;gap:6px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.lbl-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.field,.form input,.form select,.form textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink)}
+.form textarea{min-height:70px;resize:vertical}
+.hint{font-size:12px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted)}
+.pick{display:flex;flex-wrap:wrap;gap:6px}
+.pick .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.photos{display:flex;gap:8px;flex-wrap:wrap;border-radius:12px;outline:2px dashed transparent;outline-offset:4px}
+.photos.drag{outline-color:var(--accent)}
+.ph{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}
+.ph img{width:100%;height:100%;object-fit:contain;display:block}
+.ph .x{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(10,16,13,.72);color:#fff;font-size:15px;line-height:1;display:grid;place-items:center}
+.ph.busy{display:grid;place-items:center;font-size:12px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:500}
+.ph.add{display:grid;place-items:center;align-content:center;gap:2px;border:1px dashed var(--muted);cursor:pointer;color:var(--ink);text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;text-align:center}
+.ph.add input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.ph.paste{border:1px dashed var(--muted);background:var(--bg)}
+.ph.paste input{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;font-size:16px;color:transparent;caret-color:transparent;padding:0;cursor:text}
+.ph.paste span{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:2px;pointer-events:none;text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;color:var(--ink)}
+.ph.paste:focus-within{border-color:var(--accent);border-style:solid}
+.sheet-actions{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:8px}
+.sheet-actions .right{display:flex;gap:8px;margin-left:auto}
+
+/* Editors */
+.editor{display:grid;gap:8px}
+.erow{display:flex;gap:8px;align-items:center}
+.erow input{flex:1;min-width:0}
+.erow .del{flex:none;width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--warn);font-size:18px}
+.erow .cnt{font-family:var(--f-mono);font-size:11px;color:var(--muted);flex:none;min-width:22px;text-align:right}
+.catblock{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px}
+.catblock .erow input{font-weight:600}
+.typelist{display:grid;gap:6px;padding-left:14px;border-left:2px solid var(--tag)}
+.typelist .erow input{padding:8px 10px;font-size:15px;font-weight:400}
+.typelist .erow .del{width:38px;height:38px;font-size:15px}
+.addrow{display:flex;gap:8px}
+.addrow input{flex:1;min-width:0}
+
+/* Lightbox */
+.lb{position:fixed;inset:0;z-index:30;background:rgba(6,9,8,.94);display:grid;grid-template-rows:auto 1fr auto;color:#fff}
+.lb-top{display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 8px;gap:12px}
+.lb-top span{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-img{display:grid;place-items:center;min-height:0;padding:0 16px}
+.lb-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.lb-nav{display:flex;justify-content:center;gap:16px;align-items:center;padding:10px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.lb button{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:12px;height:44px;min-width:44px;padding:0 14px;font-size:16px}
+.lb-nav output{font-family:var(--f-mono);font-size:13px;min-width:52px;text-align:center}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:40;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+
+<!-- Accesso -->
+<section class="auth" id="authView" hidden>
+  <div class="authcard">
+    <img class="logo" src="icons/icon-192.png" alt="">
+    <div>
+      <h1>Ripostiglio</h1>
+      <p class="sub">L'inventario delle tue cose, su telefono e PC.</p>
+    </div>
+    <form id="authForm" novalidate>
+      <div class="msg" id="authMsg" hidden></div>
+      <div class="form" style="gap:14px">
+        <label class="lbl" id="emailRow">Email<input id="a-email" type="email" autocomplete="username" required></label>
+        <label class="lbl" id="pwRow">Password<input id="a-pw" type="password" autocomplete="current-password" minlength="8" required></label>
+      </div>
+      <button class="btn primary" id="authSubmit" type="submit">Accedi</button>
+      <div class="alt">
+        <button type="button" class="linkbtn" id="authToggle">Prima volta? Crea l'account</button>
+        <button type="button" class="linkbtn" id="authForgot">Password dimenticata?</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- App -->
+<div id="appView" hidden>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Ripostiglio</h1>
+      <p class="sub">Tutto quello che hai, dove si trova e quando lo usi.</p>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="banner" id="offline" hidden>Sei offline. L'archivio è solo online: riconnettiti per vedere e modificare i tuoi oggetti.</div>
+  <div class="banner info" id="installTip" hidden><span id="installText"></span><button class="linkbtn" id="installClose">Chiudi</button></div>
+
+  <div class="tools">
+    <div class="searchrow">
+      <div class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Cerca nome, posto, note…" autocomplete="off" aria-label="Cerca">
+      </div>
+      <select id="sort" aria-label="Ordina">
+        <option value="name">A–Z</option>
+        <option value="added">Aggiunti di recente</option>
+        <option value="boughtNew">Acquistati di recente</option>
+        <option value="boughtOld">Acquistati da più tempo</option>
+        <option value="cat">Per categoria</option>
+      </select>
+    </div>
+    <div class="chips" id="cats" role="group" aria-label="Categorie"></div>
+    <div class="chips" id="types" role="group" aria-label="Tipi" hidden></div>
+    <div class="chips" id="views" role="group" aria-label="Quando lo usi" hidden></div>
+  </div>
+
+  <main id="list"></main>
+
+  <div class="foot">
+    <span id="footnote"></span>
+    <span class="links">
+      <button class="linkbtn" id="installBtn" hidden>Installa l'app</button>
+      <button class="linkbtn" id="editCatsBtn">Modifica categorie</button>
+      <button class="linkbtn" id="editWhenBtn">Modifica “Quando lo usi”</button>
+      <button class="linkbtn" id="exportBtn">Esporta in CSV</button>
+      <button class="linkbtn" id="logoutBtn">Esci</button>
+    </span>
+  </div>
+</div>
+
+<button class="fab" id="addBtn" aria-label="Aggiungi oggetto">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+  Aggiungi
+</button>
+</div>
+
+<!-- Scheda oggetto -->
+<div class="scrim" id="scrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle">Nuovo oggetto</h2>
+    <form class="form" id="form">
+      <div class="lbl">Foto
+        <div class="photos" id="f-photos"></div>
+        <span class="hint" id="photoHint"></span>
+      </div>
+      <label class="lbl">Nome<input id="f-name" required maxlength="120" placeholder="es. Scarpe da trail Salomon"></label>
+      <div class="lbl">
+        <div class="lbl-row"><span>Categoria e tipo</span><button type="button" class="linkbtn" id="editCatsInline">Modifica categorie</button></div>
+        <div class="two">
+          <select id="f-cat" aria-label="Categoria"></select>
+          <select id="f-type" aria-label="Tipo"></select>
+        </div>
+      </div>
+      <label class="lbl">Dove si trova<input id="f-loc" list="locs" maxlength="80" placeholder="es. Garage · scaffale B"></label>
+      <datalist id="locs"></datalist>
+      <div class="lbl">
+        <div class="lbl-row"><span>Quando lo usi</span><button type="button" class="linkbtn" id="editWhenInline">Modifica elenco</button></div>
+        <div class="pick" id="f-when"></div>
+      </div>
+      <label class="lbl">Data di acquisto<input id="f-bought" type="date"></label>
+      <label class="lbl">Note<textarea id="f-notes" maxlength="1000" placeholder="Taglia, modello, prezzo, garanzia, a chi l'hai prestato…"></textarea></label>
+      <div class="sheet-actions">
+        <button type="button" class="btn danger" id="delBtn" hidden>Elimina</button>
+        <div class="right">
+          <button type="button" class="btn ghost" id="cancelBtn">Annulla</button>
+          <button type="submit" class="btn primary" id="saveBtn">Salva</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Editor categorie -->
+<div class="scrim" id="catScrim" hidden style="z-index:15">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="catTitle">
+    <h2 id="catTitle">Categorie e tipi</h2>
+    <p class="intro">Ogni categoria può avere dei tipi. Rinominare aggiorna tutti gli oggetti; il numero indica quanti oggetti usano la voce.</p>
+    <div class="editor" id="catRows"></div>
+    <div class="addrow" style="margin-top:10px">
+      <input class="field" id="catNew" maxlength="40" placeholder="Nuova categoria, es. Giochi">
+      <button type="button" class="btn ghost" id="catAdd">Aggiungi</button>
+    </div>
+    <div class="sheet-actions">
+      <div class="right">
+        <button type="button" class="btn ghost" id="catCancel">Annulla</button>
+        <button type="button" class="btn primary" id="catSave">Salva categorie</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Editor "Quando lo usi" -->
+<div class="scrim" id="whenScrim" hidden style="z-index:15">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="whenTitle">
+    <h2 id="whenTitle">Quando lo usi</h2>
+    <p class="intro">Rinomina, aggiungi o togli le voci. Rinominare una voce la aggiorna su tutti gli oggetti.</p>
+    <div class="editor" id="whenRows"></div>
+    <div class="addrow" style="margin-top:10px">
+      <input class="field" id="whenNew" maxlength="40" placeholder="Nuova voce, es. Montagna">
+      <button type="button" class="btn ghost" id="whenAdd">Aggiungi</button>
+    </div>
+    <div class="sheet-actions">
+      <div class="right">
+        <button type="button" class="btn ghost" id="whenCancel">Annulla</button>
+        <button type="button" class="btn primary" id="whenSave">Salva elenco</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Visualizzatore foto -->
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Foto">
+  <div class="lb-top"><span id="lbTitle"></span><button id="lbClose" aria-label="Chiudi">✕</button></div>
+  <div class="lb-img"><img id="lbImg" alt=""></div>
+  <div class="lb-nav"><button id="lbPrev" aria-label="Foto precedente">‹</button><output id="lbCount"></output><button id="lbNext" aria-label="Foto successiva">›</button></div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="config.js"></script>
+<script src="supabase.js"></script>
+<script>
+"use strict";
+const T = (id, label) => ({ id, label });
+const DEFAULT_CATS = [
+  { id:"c-scarpe", label:"Scarpe", types:[T("t-sport","Sportive"),T("t-casual","Casual"),T("t-elegant","Eleganti"),T("t-stivali","Stivali"),T("t-ciabatte","Ciabatte e sandali")] },
+  { id:"c-abbigl", label:"Abbigliamento", types:[T("t-giacche","Giacche e cappotti"),T("t-maglie","Maglie e felpe"),T("t-pantaloni","Pantaloni"),T("t-camicie","Camicie"),T("t-accessori","Accessori")] },
+  { id:"c-attrezzi", label:"Attrezzi", types:[T("t-elettrici","Elettrici"),T("t-manuali","Manuali"),T("t-giardino","Giardino"),T("t-misura","Misura"),T("t-ferramenta","Viti e ferramenta")] },
+  { id:"c-casa", label:"Prodotti casa", types:[T("t-pulizia","Pulizia"),T("t-bucato","Bucato"),T("t-lampadine","Lampadine e pile"),T("t-cancelleria","Cancelleria")] },
+  { id:"c-cura", label:"Cura persona", types:[T("t-igiene","Igiene"),T("t-cosmetici","Cosmetici"),T("t-farmaci","Farmaci")] },
+  { id:"c-elettr", label:"Elettronica", types:[T("t-computer","Computer"),T("t-telefonia","Telefonia"),T("t-cavi","Cavi e caricatori"),T("t-audio","Audio e video")] },
+  { id:"c-sport", label:"Sport", types:[T("t-bici","Bici"),T("t-palestra","Palestra"),T("t-montagna","Montagna"),T("t-mare","Mare")] },
+  { id:"c-cucina", label:"Cucina", types:[T("t-pentole","Pentole"),T("t-elettrodom","Elettrodomestici"),T("t-utensili","Utensili")] },
+  { id:"c-doc", label:"Documenti", types:[T("t-garanzie","Garanzie e scontrini"),T("t-libretti","Libretti d'istruzioni")] },
+  { id:"c-altro", label:"Altro", types:[] }
+];
+const DEFAULT_WHEN = [
+  T("w-daily","Tutti i giorni"),T("w-work","Lavoro"),T("w-free","Tempo libero"),T("w-sport","Sport"),
+  T("w-summer","Estate"),T("w-winter","Inverno"),T("w-rain","Pioggia"),T("w-special","Occasioni speciali"),T("w-fix","Riparazioni")
+];
+const EXAMPLES = [
+  {name:"Scarpe da corsa (esempio)",cat:"c-scarpe",type:"t-sport",loc:"Ingresso · scarpiera",when:["w-sport"],bought:"2025-03-15",notes:"Taglia 43."},
+  {name:"Trapano avvitatore (esempio)",cat:"c-attrezzi",type:"t-elettrici",loc:"Garage · scaffale B",when:["w-fix"],bought:"2022-11-02",notes:"Garanzia 2 anni, scontrino nella scatola."},
+  {name:"Piumino invernale (esempio)",cat:"c-abbigl",type:"t-giacche",loc:"Armadio camera · ripiano alto",when:["w-winter"],bought:"2023-12-10"},
+  {name:"Ombrello grande (esempio)",cat:"c-abbigl",type:"t-accessori",loc:"Ingresso · portaombrelli",when:["w-rain"],bought:"2024-10-05"},
+  {name:"Caricatore USB-C 65W (esempio)",cat:"c-elettr",type:"t-cavi",loc:"Studio · cassetto scrivania",when:["w-daily","w-work"],bought:"2026-06-01"}
+];
+
+const $ = id => document.getElementById(id);
+const CFG = window.RIPOSTIGLIO_CONFIG || {};
+const BUCKET = "photos";
+const isTouch = matchMedia("(pointer: coarse)").matches;
+
+let sb = null, uid = null, userEmail = "", channel = null;
+let items = [], cats = DEFAULT_CATS, whenList = DEFAULT_WHEN, loaded = false;
+let fCat = "", fType = "", fWhen = "", query = "", sort = "name";
+let editing = null, isNew = false, draftId = null, draftPhotos = [], sessionUploads = [], uploading = 0, draftWhen = [];
+let whenDraft = [], catDraft = [];
+let saving = 0, reloadTimer = null;
+
+/* Impostazioni locali (solo preferenze, nessun dato dell'archivio) */
+const prefs = {
+  get(k, d){ try { const v = localStorage.getItem("ripostiglio-pref-" + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v){ try { localStorage.setItem("ripostiglio-pref-" + k, JSON.stringify(v)); } catch {} }
+};
+sort = prefs.get("sort", "name");
+$("sort").value = sort;
+
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function uuid(){ return crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)); }
+const MONTHS = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+function boughtText(d){
+  if (!d) return "";
+  const [y,m] = d.split("-").map(Number);
+  const months = (new Date().getFullYear() - y) * 12 + (new Date().getMonth() + 1 - m);
+  const age = months < 1 ? "questo mese" : months < 12 ? `${months} ${months===1?"mese":"mesi"} fa` : `${Math.floor(months/12)} ${Math.floor(months/12)===1?"anno":"anni"} fa`;
+  return `Acquistato ${MONTHS[m-1]} ${y} · ${age}`;
+}
+function whenLabel(id){ const w = whenList.find(x => x.id === id); return w ? w.label : null; }
+function catOf(it){ return cats.find(c => c.id === it.cat) || cats.find(c => c.label === it.cat) || null; }
+function typeOf(it){ const c = catOf(it); return c ? c.types.find(t => t.id === it.type) || null : null; }
+
+let toastT;
+function toast(msg){ const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3000); }
+function netError(e){ return !navigator.onLine ? "Sei offline: la modifica non è stata salvata." : (e && e.message ? "Errore: " + e.message : "Operazione non riuscita. Riprova."); }
+
+/* ---------- foto: indirizzi temporanei firmati, solo in memoria ---------- */
+const urlCache = {};       // percorso → { url, exp }
+const urlQueue = new Set();
+let urlTimer = null;
+function urlOf(path){
+  const c = urlCache[path];
+  if (c && c.exp > Date.now() + 60000) return c.url;
+  if (!urlQueue.has(path)) { urlQueue.add(path); clearTimeout(urlTimer); urlTimer = setTimeout(fetchUrls, 0); }
+  return c ? c.url : "";
+}
+async function fetchUrls(){
+  const paths = [...urlQueue]; urlQueue.clear();
+  if (!paths.length || !sb) return;
+  const { data, error } = await sb.storage.from(BUCKET).createSignedUrls(paths, 3600);
+  if (error || !data) return;
+  const exp = Date.now() + 3600 * 1000;
+  data.forEach(d => { if (d.signedUrl) urlCache[d.path] = { url: d.signedUrl, exp }; });
+  render(); if (!$("scrim").hidden) renderPhotos(); if (!$("lb").hidden) showLb();
+}
+
+/* ---------- archivio online ---------- */
+function fromRow(r){
+  return { id: r.id, name: r.name, cat: r.cat, type: r.type, loc: r.loc || "", when: r.use_when || [], bought: r.bought, notes: r.notes || "", photos: r.photos || [], createdAt: Date.parse(r.created_at) || 0 };
+}
+function toRow(it){
+  return { id: it.id, user_id: uid, name: it.name, cat: it.cat || null, type: it.type || null, loc: it.loc || null, use_when: it.when || [], bought: it.bought || null, notes: it.notes || null, photos: it.photos || [], updated_at: new Date().toISOString() };
+}
+async function loadItems(){
+  const { data, error } = await sb.from("items").select("*").order("name");
+  if (error) { toast(netError(error)); return; }
+  items = data.map(fromRow); loaded = true; render();
+}
+async function loadSettings(){
+  const { data, error } = await sb.from("settings").select("data").maybeSingle();
+  if (error) return;
+  const d = data?.data || {};
+  cats = Array.isArray(d.cats) ? d.cats : DEFAULT_CATS;
+  whenList = Array.isArray(d.whenList) ? d.whenList : DEFAULT_WHEN;
+  render();
+  if (!$("scrim").hidden) { renderWhenPick(); renderCatSelects(); }
+}
+async function saveSettings(){
+  const { error } = await sb.from("settings").upsert({ user_id: uid, data: { cats, whenList }, updated_at: new Date().toISOString() });
+  if (error) throw error;
+}
+function scheduleReload(){
+  clearTimeout(reloadTimer);
+  reloadTimer = setTimeout(() => saving > 0 ? scheduleReload() : loadItems(), 400);
+}
+async function saveItem(it){
+  const i = items.findIndex(x => x.id === it.id);
+  const before = items.slice();
+  items = i < 0 ? [...items, it] : items.map(x => x.id === it.id ? it : x);
+  render();
+  saving++;
+  const { error } = await sb.from("items").upsert(toRow(it));
+  saving--;
+  if (error) { items = before; render(); toast(netError(error)); return false; }
+  return true;
+}
+async function removeItem(it){
+  const before = items.slice();
+  items = items.filter(x => x.id !== it.id); render();
+  saving++;
+  const { error } = await sb.from("items").delete().eq("id", it.id);
+  saving--;
+  if (error) { items = before; render(); toast(netError(error)); return; }
+  removePhotos(it.photos || []);
+  toast("Oggetto eliminato");
+}
+function removePhotos(paths){ if (paths.length) sb.storage.from(BUCKET).remove(paths).catch(() => {}); }
+
+/* ---------- foto ---------- */
+async function compress(file){
+  try {
+    const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const max = 1600, s = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    bmp.close && bmp.close();
+    const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.82));
+    if (blob) return blob;
+  } catch {}
+  return file;
+}
+async function addPhotos(files){
+  files = files.filter(f => f && (!f.type || f.type.startsWith("image/")));
+  if (!files.length) return;
+  if (!navigator.onLine) { toast("Sei offline: le foto si caricano solo con la connessione."); return; }
+  for (const file of files) {
+    uploading++; renderPhotos();
+    try {
+      const blob = await compress(file);
+      const type = ["image/jpeg","image/png","image/webp","image/gif"].includes(blob.type) ? blob.type : "image/jpeg";
+      const ext = { "image/jpeg":"jpg", "image/png":"png", "image/webp":"webp", "image/gif":"gif" }[type];
+      const path = `${uid}/${draftId}/${uuid()}.${ext}`;
+      const { error } = await sb.storage.from(BUCKET).upload(path, blob, { contentType: type, upsert: false });
+      if (error) throw error;
+      urlCache[path] = { url: URL.createObjectURL(blob), exp: Infinity };
+      draftPhotos.push(path); sessionUploads.push(path);
+    } catch (e) {
+      toast(e && /size|large/i.test(e.message || "") ? "Foto troppo grande." : netError(e));
+    }
+    uploading--; renderPhotos();
+  }
+}
+function imagesFromClipboard(cd){
+  if (!cd) return [];
+  const out = [];
+  for (const it of cd.items || []) if (it.kind === "file" && it.type.startsWith("image/")) { const f = it.getAsFile(); if (f) out.push(f); }
+  if (!out.length) for (const f of cd.files || []) if (f.type.startsWith("image/")) out.push(f);
+  return out;
+}
+function renderPhotos(){
+  $("f-photos").innerHTML = draftPhotos.map((p, i) =>
+    `<div class="ph"><img src="${esc(urlOf(p))}" alt="Foto ${i+1}"><button type="button" class="x" data-rmphoto="${i}" aria-label="Rimuovi foto ${i+1}">✕</button></div>`).join("")
+    + Array.from({length: uploading}, () => `<div class="ph busy">Carico…</div>`).join("")
+    + `<label class="ph add"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Scatta o scegli<input type="file" id="f-file" accept="image/*" multiple></label>
+       <div class="ph paste"><input id="f-paste" aria-label="Incolla foto qui" autocomplete="off" inputmode="none"><span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="4" width="10" height="4" rx="1"/><path d="M8 6H6v14h12V6h-2"/></svg>Incolla</span></div>`;
+  $("photoHint").textContent = isTouch
+    ? "Per incollare: copia una foto, poi tieni premuto “Incolla” e scegli Incolla."
+    : "Puoi anche incollare con Ctrl+V (⌘V su Mac) o trascinare le foto qui.";
+  $("saveBtn").disabled = uploading > 0;
+  $("saveBtn").textContent = uploading > 0 ? "Carico foto…" : "Salva";
+}
+document.addEventListener("change", e => {
+  if (e.target.id === "f-file") { const files = [...e.target.files]; e.target.value = ""; addPhotos(files); }
+});
+document.addEventListener("input", e => { if (e.target.id === "f-paste") e.target.value = ""; });
+document.addEventListener("paste", e => {
+  if ($("appView").hidden) return;
+  const imgs = imagesFromClipboard(e.clipboardData);
+  if (!imgs.length) { if (e.target.id === "f-paste") { e.preventDefault(); toast("Negli appunti non c'è una foto. Copia prima un'immagine."); } return; }
+  if (!$("catScrim").hidden || !$("whenScrim").hidden || !$("lb").hidden) return;
+  e.preventDefault();
+  if ($("scrim").hidden) openSheet(null);
+  addPhotos(imgs);
+});
+document.addEventListener("dragover", e => { if (!$("scrim").hidden && e.dataTransfer && [...e.dataTransfer.types].includes("Files")) { e.preventDefault(); $("f-photos").classList.add("drag"); } });
+document.addEventListener("dragleave", e => { if (!e.relatedTarget) $("f-photos").classList.remove("drag"); });
+document.addEventListener("drop", e => {
+  if ($("scrim").hidden) return;
+  e.preventDefault(); $("f-photos").classList.remove("drag");
+  addPhotos([...(e.dataTransfer?.files || [])]);
+});
+
+/* ---------- render ---------- */
+function filtered(){
+  const q = query.trim().toLowerCase();
+  const out = items.filter(it => {
+    const c = catOf(it);
+    if (fCat && (!c || c.id !== fCat)) return false;
+    if (fType && it.type !== fType) return false;
+    if (fWhen && !(it.when || []).includes(fWhen)) return false;
+    if (q) {
+      const hay = `${it.name} ${it.loc} ${it.notes} ${c?.label || ""} ${typeOf(it)?.label || ""} ${(it.when||[]).map(whenLabel).join(" ")}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  const catIdx = it => { const c = catOf(it); return c ? cats.indexOf(c) : 999; };
+  const by = {
+    name: (a,b) => a.name.localeCompare(b.name, "it"),
+    added: (a,b) => (b.createdAt||0) - (a.createdAt||0),
+    boughtNew: (a,b) => (b.bought||"").localeCompare(a.bought||""),
+    boughtOld: (a,b) => (a.bought||"9999").localeCompare(b.bought||"9999"),
+    cat: (a,b) => catIdx(a) - catIdx(b) || (typeOf(a)?.label||"~").localeCompare(typeOf(b)?.label||"~","it") || a.name.localeCompare(b.name,"it")
+  }[sort] || ((a,b) => a.name.localeCompare(b.name, "it"));
+  return out.sort(by);
+}
+
+function render(){
+  if ($("appView").hidden) return;
+  const places = new Set(items.map(i => (i.loc||"").split("·")[0].trim()).filter(Boolean)).size;
+  const withPhoto = items.filter(i => (i.photos||[]).length).length;
+  $("stats").innerHTML = `
+    <div class="stat"><b>${items.length}</b><span>Oggetti</span></div>
+    <div class="stat"><b>${places}</b><span>Luoghi</span></div>
+    <div class="stat"><b>${withPhoto}</b><span>Con foto</span></div>`;
+
+  const cc = {}, tc = {};
+  items.forEach(i => { const c = catOf(i); if (c) { cc[c.id] = (cc[c.id]||0) + 1; if (i.type) tc[i.type] = (tc[i.type]||0) + 1; } });
+  if (fCat && !cats.some(c => c.id === fCat)) { fCat = ""; fType = ""; }
+  const usedCats = cats.filter(c => cc[c.id]);
+  $("cats").innerHTML = usedCats.length ? `<button class="chip" data-fcat="" aria-pressed="${!fCat}">Tutte</button>` +
+    usedCats.map(c => `<button class="chip" data-fcat="${esc(c.id)}" aria-pressed="${fCat===c.id}">${esc(c.label)}<span class="n">${cc[c.id]}</span></button>`).join("") : "";
+  $("cats").hidden = !usedCats.length;
+  const selCat = cats.find(c => c.id === fCat);
+  const usedTypes = selCat ? selCat.types.filter(t => tc[t.id]) : [];
+  if (fType && !usedTypes.some(t => t.id === fType)) fType = "";
+  $("types").innerHTML = usedTypes.length ? `<span class="lab">Tipo</span><button class="chip" data-ftype="" aria-pressed="${!fType}">Tutti</button>` +
+    usedTypes.map(t => `<button class="chip" data-ftype="${esc(t.id)}" aria-pressed="${fType===t.id}">${esc(t.label)}<span class="n">${tc[t.id]}</span></button>`).join("") : "";
+  $("types").hidden = !usedTypes.length;
+  const wc = {}; items.forEach(i => (i.when||[]).forEach(w => wc[w] = (wc[w]||0) + 1));
+  const usedWhen = whenList.filter(w => wc[w.id]);
+  if (fWhen && !usedWhen.some(w => w.id === fWhen)) fWhen = "";
+  $("views").innerHTML = usedWhen.length ? `<span class="lab">Quando</span><button class="chip" data-fwhen="" aria-pressed="${!fWhen}">Sempre</button>` +
+    usedWhen.map(w => `<button class="chip" data-fwhen="${esc(w.id)}" aria-pressed="${fWhen===w.id}">${esc(w.label)}<span class="n">${wc[w.id]}</span></button>`).join("") : "";
+  $("views").hidden = !usedWhen.length;
+
+  $("locs").innerHTML = [...new Set(items.map(i => i.loc).filter(Boolean))].map(l => `<option value="${esc(l)}">`).join("");
+
+  const list = $("list");
+  if (!loaded){
+    list.innerHTML = `<div class="empty"><h2>Apro il ripostiglio…</h2><p>Sto caricando i tuoi oggetti.</p></div>`;
+  } else if (!items.length){
+    list.innerHTML = `<div class="empty">
+      <h2>Il ripostiglio è vuoto</h2>
+      <p>Aggiungi le cose che possiedi: scarpe, attrezzi, prodotti per la casa. Per ognuna puoi mettere foto, categoria e tipo, dove si trova, quando la usi e quando l'hai comprata.</p>
+      <div class="row"><button class="btn primary" data-act="add">Aggiungi il primo oggetto</button><button class="btn ghost" data-act="examples">Carica 5 esempi</button></div>
+    </div>`;
+  } else {
+    const rows = filtered();
+    list.innerHTML = rows.length ? `<div class="grid">${rows.map(card).join("")}</div>`
+      : `<div class="empty"><h2>Nessun risultato</h2><p>Nessun oggetto corrisponde a ricerca e filtri attuali.</p><div class="row"><button class="btn ghost" data-act="clear">Azzera filtri</button></div></div>`;
+  }
+  $("footnote").textContent = userEmail ? `Archivio online · ${userEmail}` : "";
+}
+
+function card(it){
+  const ph = it.photos || [];
+  const thumb = ph.length
+    ? `<button class="thumb" data-view-photos="${it.id}" aria-label="Guarda le foto di ${esc(it.name)}">${urlOf(ph[0]) ? `<img src="${esc(urlOf(ph[0]))}" alt="" loading="lazy">` : ""}${ph.length > 1 ? `<span class="count">${ph.length}</span>` : ""}</button>`
+    : `<button class="thumb" data-edit="${it.id}" aria-label="Aggiungi foto a ${esc(it.name)}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>`;
+  const c = catOf(it), t = typeOf(it);
+  const whens = (it.when || []).map(whenLabel).filter(Boolean);
+  return `<article class="item">
+    ${thumb}
+    <div class="body">
+      <button class="item-main" data-edit="${it.id}" aria-label="Modifica ${esc(it.name)}">
+        <span class="item-name">${esc(it.name)}</span>
+        ${it.loc ? `<span class="item-loc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>${esc(it.loc)}</span>` : ""}
+      </button>
+      <div class="tagrow">
+        <span class="tag">${c ? esc(c.label) : "Senza categoria"}${t ? ` <span class="t">· ${esc(t.label)}</span>` : ""}</span>
+        ${whens.map(w => `<span class="when">${esc(w)}</span>`).join("")}
+      </div>
+      ${it.bought ? `<div class="meta">${boughtText(it.bought)}</div>` : ""}
+    </div>
+  </article>`;
+}
+
+/* ---------- scheda oggetto ---------- */
+function renderWhenPick(){
+  $("f-when").innerHTML = whenList.map(w => `<button type="button" class="chip" data-pickwhen="${esc(w.id)}" aria-pressed="${draftWhen.includes(w.id)}">${esc(w.label)}</button>`).join("")
+    || `<span class="hint">Nessuna voce. Usa “Modifica elenco” per crearne.</span>`;
+}
+function renderCatSelects(catId, typeId){
+  catId = catId ?? $("f-cat").value; typeId = typeId ?? $("f-type").value;
+  $("f-cat").innerHTML = `<option value="">Senza categoria</option>` + cats.map(c => `<option value="${esc(c.id)}">${esc(c.label)}</option>`).join("");
+  $("f-cat").value = cats.some(c => c.id === catId) ? catId : "";
+  const c = cats.find(x => x.id === $("f-cat").value);
+  const types = c ? c.types : [];
+  $("f-type").innerHTML = `<option value="">${types.length ? "Tipo: nessuno" : "Nessun tipo"}</option>` + types.map(t => `<option value="${esc(t.id)}">${esc(t.label)}</option>`).join("");
+  $("f-type").value = types.some(t => t.id === typeId) ? typeId : "";
+  $("f-type").disabled = !types.length;
+}
+$("f-cat").addEventListener("change", () => renderCatSelects(undefined, ""));
+
+function openSheet(it){
+  editing = it ? it.id : null; isNew = !it; draftId = it ? it.id : uuid();
+  $("sheetTitle").textContent = it ? "Modifica oggetto" : "Nuovo oggetto";
+  $("f-name").value = it?.name || "";
+  const c = it ? catOf(it) : cats.find(x => x.id === fCat);
+  renderCatSelects(c ? c.id : "", it ? (it.type || "") : fType);
+  $("f-loc").value = it?.loc || "";
+  $("f-bought").value = it?.bought || "";
+  $("f-notes").value = it?.notes || "";
+  draftWhen = [...(it?.when || [])];
+  draftPhotos = [...(it?.photos || [])];
+  sessionUploads = []; uploading = 0;
+  renderWhenPick(); renderPhotos();
+  const del = $("delBtn"); del.hidden = !it; del.classList.remove("armed"); del.textContent = "Elimina";
+  $("scrim").hidden = false;
+  if (!it && !isTouch) setTimeout(() => $("f-name").focus(), 50);
+}
+function closeSheet(saved){
+  if (!saved) removePhotos(sessionUploads);
+  sessionUploads = []; draftPhotos = [];
+  $("scrim").hidden = true; editing = null;
+}
+
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (uploading) return;
+  const name = $("f-name").value.trim();
+  if (!name) { $("f-name").focus(); return; }
+  const prev = editing ? items.find(x => x.id === editing) : null;
+  const it = {
+    ...(prev || { createdAt: Date.now() }),
+    id: draftId,
+    name,
+    cat: $("f-cat").value || null,
+    type: $("f-type").value || null,
+    loc: $("f-loc").value.trim(),
+    when: draftWhen.filter(id => whenList.some(w => w.id === id)),
+    bought: $("f-bought").value || null,
+    notes: $("f-notes").value.trim(),
+    photos: [...draftPhotos]
+  };
+  const removed = (prev?.photos || []).filter(p => !draftPhotos.includes(p));
+  const uploadsThisTime = sessionUploads;
+  sessionUploads = [];
+  closeSheet(true);
+  const ok = await saveItem(it);
+  if (ok) { removePhotos(removed); toast(prev ? "Modifiche salvate" : "Oggetto aggiunto"); }
+  else removePhotos(uploadsThisTime);
+});
+$("cancelBtn").onclick = () => closeSheet(false);
+$("scrim").addEventListener("click", e => { if (e.target === $("scrim")) closeSheet(false); });
+$("delBtn").onclick = () => {
+  const b = $("delBtn");
+  if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Tocca di nuovo per eliminare"; return; }
+  const it = items.find(x => x.id === editing);
+  const extra = sessionUploads; closeSheet(true); removePhotos(extra);
+  if (it) removeItem(it);
+};
+
+/* ---------- editor categorie ---------- */
+function openCatEditor(){
+  catDraft = cats.map(c => ({ id: c.id, label: c.label, types: c.types.map(t => ({ ...t })) }));
+  renderCatRows(); $("catNew").value = ""; $("catScrim").hidden = false;
+}
+function renderCatRows(){
+  const cc = {}, tc = {};
+  items.forEach(i => { const c = catOf(i); if (c) cc[c.id] = (cc[c.id]||0) + 1; if (i.type) tc[i.type] = (tc[i.type]||0) + 1; });
+  $("catRows").innerHTML = catDraft.map((c, ci) => `<div class="catblock">
+      <div class="erow">
+        <input class="field" id="cl-${esc(c.id)}" data-ci="${ci}" value="${esc(c.label)}" maxlength="40" aria-label="Nome categoria">
+        <span class="cnt">${cc[c.id] || 0}</span>
+        <button type="button" class="del" data-cdel="${ci}" aria-label="Togli categoria ${esc(c.label)}">✕</button>
+      </div>
+      <div class="typelist">
+        ${c.types.map((t, ti) => `<div class="erow">
+          <input class="field" id="tl-${esc(t.id)}" data-ci="${ci}" data-ti="${ti}" value="${esc(t.label)}" maxlength="40" aria-label="Tipo">
+          <span class="cnt">${tc[t.id] || 0}</span>
+          <button type="button" class="del" data-tdel="${ci}:${ti}" aria-label="Togli tipo ${esc(t.label)}">✕</button>
+        </div>`).join("")}
+        <div class="addrow">
+          <input class="field" id="tn-${esc(c.id)}" data-tnew="${ci}" maxlength="40" placeholder="Nuovo tipo" style="padding:8px 10px">
+          <button type="button" class="btn ghost small" data-tadd="${ci}">Aggiungi tipo</button>
+        </div>
+      </div>
+    </div>`).join("") || `<p class="hint" style="margin:0">Nessuna categoria.</p>`;
+}
+function addType(ci){
+  const inp = document.querySelector(`[data-tnew="${ci}"]`); const v = inp.value.trim(); if (!v) return;
+  if (catDraft[ci].types.some(t => t.label.toLowerCase() === v.toLowerCase())) { toast("Questo tipo c'è già"); return; }
+  catDraft[ci].types.push({ id: "t-" + uuid().slice(0, 8), label: v }); renderCatRows();
+  document.querySelector(`[data-tnew="${ci}"]`).focus();
+}
+function addCat(){
+  const v = $("catNew").value.trim(); if (!v) return;
+  if (catDraft.some(c => c.label.toLowerCase() === v.toLowerCase())) { toast("Questa categoria c'è già"); return; }
+  catDraft.push({ id: "c-" + uuid().slice(0, 8), label: v, types: [] }); $("catNew").value = ""; renderCatRows();
+  document.querySelector(`[data-tnew="${catDraft.length-1}"]`).focus();
+}
+$("catAdd").onclick = addCat;
+$("catNew").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addCat(); } });
+$("catRows").addEventListener("input", e => {
+  const d = e.target.dataset;
+  if (d.ti != null) catDraft[d.ci].types[d.ti].label = e.target.value;
+  else if (d.ci != null) catDraft[d.ci].label = e.target.value;
+});
+$("catRows").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.dataset.tnew != null) { e.preventDefault(); addType(Number(e.target.dataset.tnew)); } });
+$("catCancel").onclick = () => $("catScrim").hidden = true;
+$("catScrim").addEventListener("click", e => { if (e.target === $("catScrim")) $("catScrim").hidden = true; });
+$("catSave").onclick = async () => {
+  if ($("catNew").value.trim()) addCat();
+  document.querySelectorAll("[data-tnew]").forEach(inp => { if (inp.value.trim()) addType(Number(inp.dataset.tnew)); });
+  const prevCats = cats;
+  cats = catDraft.map(c => ({ id: c.id, label: c.label.trim(), types: c.types.map(t => ({ id: t.id, label: t.label.trim() })).filter(t => t.label) })).filter(c => c.label);
+  $("catScrim").hidden = true; render();
+  if (!$("scrim").hidden) renderCatSelects();
+  try { await saveSettings(); toast("Categorie aggiornate"); }
+  catch (e) { cats = prevCats; render(); toast(netError(e)); }
+};
+$("editCatsBtn").onclick = openCatEditor;
+$("editCatsInline").onclick = openCatEditor;
+
+/* ---------- editor "Quando lo usi" ---------- */
+function openWhenEditor(){
+  whenDraft = whenList.map(w => ({ ...w }));
+  renderWhenRows(); $("whenNew").value = ""; $("whenScrim").hidden = false;
+}
+function renderWhenRows(){
+  const wc = {}; items.forEach(i => (i.when||[]).forEach(w => wc[w] = (wc[w]||0) + 1));
+  $("whenRows").innerHTML = whenDraft.map((w, i) => `<div class="erow">
+      <input class="field" id="wl-${esc(w.id)}" data-wi="${i}" value="${esc(w.label)}" maxlength="40" aria-label="Voce ${i+1}">
+      <span class="cnt">${wc[w.id] || 0}</span>
+      <button type="button" class="del" data-wdel="${i}" aria-label="Togli ${esc(w.label)}">✕</button>
+    </div>`).join("") || `<p class="hint" style="margin:0">Elenco vuoto.</p>`;
+}
+function addWhenDraft(){
+  const v = $("whenNew").value.trim(); if (!v) return;
+  if (whenDraft.some(w => w.label.toLowerCase() === v.toLowerCase())) { toast("Questa voce c'è già"); return; }
+  whenDraft.push({ id: "w-" + uuid().slice(0, 8), label: v }); $("whenNew").value = ""; renderWhenRows(); $("whenNew").focus();
+}
+$("whenAdd").onclick = addWhenDraft;
+$("whenNew").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addWhenDraft(); } });
+$("whenRows").addEventListener("input", e => { const i = e.target.dataset.wi; if (i != null) whenDraft[i].label = e.target.value; });
+$("whenCancel").onclick = () => $("whenScrim").hidden = true;
+$("whenScrim").addEventListener("click", e => { if (e.target === $("whenScrim")) $("whenScrim").hidden = true; });
+$("whenSave").onclick = async () => {
+  if ($("whenNew").value.trim()) addWhenDraft();
+  const prevWhen = whenList;
+  whenList = whenDraft.map(w => ({ id: w.id, label: w.label.trim() })).filter(w => w.label);
+  $("whenScrim").hidden = true; render();
+  if (!$("scrim").hidden) { draftWhen = draftWhen.filter(id => whenList.some(w => w.id === id)); renderWhenPick(); }
+  try { await saveSettings(); toast("Elenco aggiornato"); }
+  catch (e) { whenList = prevWhen; render(); toast(netError(e)); }
+};
+$("editWhenBtn").onclick = openWhenEditor;
+$("editWhenInline").onclick = openWhenEditor;
+
+/* ---------- visualizzatore foto ---------- */
+let lbPhotos = [], lbIdx = 0;
+function openLb(it){ lbPhotos = it.photos || []; lbIdx = 0; $("lbTitle").textContent = it.name; showLb(); $("lb").hidden = false; }
+function showLb(){
+  const u = urlOf(lbPhotos[lbIdx]);
+  if (u) $("lbImg").src = u; else $("lbImg").removeAttribute("src");
+  $("lbCount").textContent = `${lbIdx+1} / ${lbPhotos.length}`;
+  $("lbPrev").hidden = $("lbNext").hidden = lbPhotos.length < 2;
+}
+function stepLb(d){ if (lbPhotos.length < 2) return; lbIdx = (lbIdx + d + lbPhotos.length) % lbPhotos.length; showLb(); }
+$("lbClose").onclick = () => $("lb").hidden = true;
+$("lbPrev").onclick = () => stepLb(-1);
+$("lbNext").onclick = () => stepLb(1);
+let tx = null;
+$("lb").addEventListener("touchstart", e => tx = e.touches[0].clientX, { passive: true });
+$("lb").addEventListener("touchend", e => { if (tx == null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) stepLb(dx < 0 ? 1 : -1); tx = null; });
+
+document.addEventListener("keydown", e => {
+  if (!$("lb").hidden) { if (e.key === "Escape") $("lb").hidden = true; if (e.key === "ArrowLeft") stepLb(-1); if (e.key === "ArrowRight") stepLb(1); return; }
+  if (e.key !== "Escape") return;
+  if (!$("catScrim").hidden) $("catScrim").hidden = true;
+  else if (!$("whenScrim").hidden) $("whenScrim").hidden = true;
+  else if (!$("scrim").hidden) closeSheet(false);
+});
+
+/* ---------- eventi pagina ---------- */
+$("addBtn").onclick = () => openSheet(null);
+$("q").addEventListener("input", e => { query = e.target.value; render(); });
+$("sort").addEventListener("change", e => { sort = e.target.value; prefs.set("sort", sort); render(); });
+document.addEventListener("click", async e => {
+  const t = e.target.closest("button"); if (!t) return;
+  const d = t.dataset;
+  if (d.fcat !== undefined) { fCat = d.fcat; fType = ""; render(); }
+  else if (d.ftype !== undefined) { fType = d.ftype; render(); }
+  else if (d.fwhen !== undefined) { fWhen = d.fwhen; render(); }
+  else if (d.edit) openSheet(items.find(x => x.id === d.edit));
+  else if (d.viewPhotos) { const it = items.find(x => x.id === d.viewPhotos); if (it) openLb(it); }
+  else if (d.pickwhen) { const id = d.pickwhen; draftWhen = draftWhen.includes(id) ? draftWhen.filter(x => x !== id) : [...draftWhen, id]; renderWhenPick(); }
+  else if (d.rmphoto != null) { draftPhotos.splice(Number(d.rmphoto), 1); renderPhotos(); }
+  else if (d.wdel != null) { whenDraft.splice(Number(d.wdel), 1); renderWhenRows(); }
+  else if (d.cdel != null) { catDraft.splice(Number(d.cdel), 1); renderCatRows(); }
+  else if (d.tdel != null) { const [ci, ti] = d.tdel.split(":").map(Number); catDraft[ci].types.splice(ti, 1); renderCatRows(); }
+  else if (d.tadd != null) addType(Number(d.tadd));
+  else if (d.act === "add") openSheet(null);
+  else if (d.act === "clear") { fCat = fType = fWhen = query = ""; $("q").value = ""; render(); }
+  else if (d.act === "examples") {
+    const now = Date.now();
+    for (const [i, x] of EXAMPLES.entries()) {
+      await saveItem({ id: uuid(), createdAt: now - i, name: x.name, cat: x.cat, type: x.type, loc: x.loc, when: x.when, bought: x.bought, notes: x.notes || "", photos: [] });
+    }
+    toast("Esempi caricati: modificali o eliminali quando vuoi");
+  }
+});
+
+$("exportBtn").onclick = () => {
+  const head = ["Nome","Categoria","Tipo","Posizione","Quando lo usi","Data di acquisto","Foto","Note"];
+  const cell = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
+  const rows = [...items].sort((a,b) => a.name.localeCompare(b.name,"it"))
+    .map(i => [i.name, catOf(i)?.label || "", typeOf(i)?.label || "", i.loc, (i.when||[]).map(whenLabel).filter(Boolean).join(", "), i.bought || "", (i.photos||[]).length, i.notes].map(cell).join(";"));
+  const csv = "﻿" + [head.map(cell).join(";"), ...rows].join("\r\n");
+  const t = new Date(), ds = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  a.download = `ripostiglio-${ds}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+};
+
+/* ---------- installazione come app ---------- */
+let installEvt = null;
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; $("installBtn").hidden = false; });
+$("installBtn").onclick = async () => {
+  if (!installEvt) return;
+  installEvt.prompt(); await installEvt.userChoice; installEvt = null; $("installBtn").hidden = true;
+};
+window.addEventListener("appinstalled", () => { $("installBtn").hidden = true; toast("App installata"); });
+function maybeInstallTip(){
+  if (standalone || prefs.get("installTipClosed", false)) return;
+  const ua = navigator.userAgent;
+  const ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (!ios) return;
+  $("installText").textContent = "Per installarla: tocca Condividi (il quadrato con la freccia) e poi “Aggiungi alla schermata Home”.";
+  $("installTip").hidden = false;
+}
+$("installClose").onclick = () => { $("installTip").hidden = true; prefs.set("installTipClosed", true); };
+if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+
+/* ---------- connessione ---------- */
+function updateOnline(){ $("offline").hidden = navigator.onLine; }
+window.addEventListener("online", () => { updateOnline(); if (uid) { loadItems(); loadSettings(); } });
+window.addEventListener("offline", updateOnline);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && uid && navigator.onLine) { loadItems(); loadSettings(); } });
+
+/* ---------- accesso ---------- */
+let authMode = "login"; // login | signup | forgot | reset
+function setAuthMode(m, msg, isErr){
+  authMode = m;
+  $("emailRow").hidden = m === "reset";
+  $("pwRow").hidden = m === "forgot";
+  $("pwRow").firstChild.textContent = m === "reset" ? "Nuova password" : "Password";
+  $("a-pw").autocomplete = m === "login" ? "current-password" : "new-password";
+  $("authSubmit").textContent = { login:"Accedi", signup:"Crea account", forgot:"Inviami il link", reset:"Salva la nuova password" }[m];
+  $("authToggle").textContent = m === "login" ? "Prima volta? Crea l'account" : "Ho già un account: accedi";
+  $("authToggle").hidden = m === "reset";
+  $("authForgot").hidden = m !== "login";
+  const box = $("authMsg");
+  box.hidden = !msg; box.textContent = msg || ""; box.classList.toggle("err", !!isErr);
+}
+function showAuth(m = "login", msg, isErr){
+  $("appView").hidden = true; $("authView").hidden = false;
+  setAuthMode(m, msg, isErr);
+}
+$("authToggle").onclick = () => setAuthMode(authMode === "login" ? "signup" : "login");
+$("authForgot").onclick = () => setAuthMode("forgot", "Scrivi la tua email: ti mando un link per scegliere una nuova password.");
+$("authForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const email = $("a-email").value.trim(), pw = $("a-pw").value;
+  const btn = $("authSubmit"); btn.disabled = true;
+  const here = location.origin + location.pathname;
+  try {
+    if (authMode === "login") {
+      const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+      if (error) throw error;
+    } else if (authMode === "signup") {
+      if (pw.length < 8) throw new Error("La password deve avere almeno 8 caratteri.");
+      const { data, error } = await sb.auth.signUp({ email, password: pw, options: { emailRedirectTo: here } });
+      if (error) throw error;
+      if (!data.session) setAuthMode("login", "Account creato. Ti ho mandato una mail: apri il link di conferma, poi accedi qui.");
+    } else if (authMode === "forgot") {
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: here });
+      if (error) throw error;
+      setAuthMode("login", "Se l'indirizzo è registrato, ti è arrivata una mail con il link per cambiare password.");
+    } else if (authMode === "reset") {
+      if (pw.length < 8) throw new Error("La password deve avere almeno 8 caratteri.");
+      const { error } = await sb.auth.updateUser({ password: pw });
+      if (error) throw error;
+      toast("Password aggiornata");
+      setAuthMode("login");
+      const { data } = await sb.auth.getSession();
+      if (data.session) startApp(data.session.user);
+    }
+  } catch (err) {
+    const m = err.message || "";
+    const it = /invalid login/i.test(m) ? "Email o password non corretti."
+      : /not confirmed/i.test(m) ? "Devi prima confermare l'email: apri il link che ti ho mandato."
+      : /already registered/i.test(m) ? "Esiste già un account con questa email: accedi."
+      : /signups not allowed|signup is disabled/i.test(m) ? "La registrazione di nuovi account è chiusa."
+      : !navigator.onLine ? "Sei offline: serve la connessione per accedere."
+      : m;
+    setAuthMode(authMode, it, true);
+  } finally { btn.disabled = false; }
+});
+$("logoutBtn").onclick = async () => {
+  await sb.auth.signOut();
+};
+
+function startApp(user){
+  if (uid === user.id && !$("appView").hidden) return;
+  uid = user.id; userEmail = user.email || "";
+  $("authView").hidden = true; $("appView").hidden = false;
+  loaded = false; render(); updateOnline(); maybeInstallTip();
+  loadSettings(); loadItems();
+  if (channel) sb.removeChannel(channel);
+  channel = sb.channel("ripostiglio-" + uid)
+    .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `user_id=eq.${uid}` }, scheduleReload)
+    .on("postgres_changes", { event: "*", schema: "public", table: "settings", filter: `user_id=eq.${uid}` }, () => loadSettings())
+    .subscribe();
+}
+function stopApp(){
+  if (channel) { sb.removeChannel(channel); channel = null; }
+  uid = null; userEmail = ""; items = []; loaded = false;
+  Object.keys(urlCache).forEach(k => delete urlCache[k]);
+}
+
+/* ---------- avvio ---------- */
+(function boot(){
+  const configured = CFG.supabaseUrl && !/INCOLLA/.test(CFG.supabaseUrl) && CFG.supabaseKey && !/INCOLLA/.test(CFG.supabaseKey);
+  if (!configured || !window.supabase) {
+    showAuth("login", "L'app non è ancora collegata all'archivio: inserisci indirizzo e chiave di Supabase nel file config.js (vedi LEGGIMI).", true);
+    $("authSubmit").disabled = true;
+    return;
+  }
+  sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+  // Le chiamate all'archivio partono fuori dal callback (setTimeout), come consiglia Supabase.
+  sb.auth.onAuthStateChange((event, session) => setTimeout(() => {
+    if (event === "PASSWORD_RECOVERY") { showAuth("reset", "Scegli la nuova password."); return; }
+    if (session?.user) { if (authMode !== "reset") startApp(session.user); }
+    else { stopApp(); showAuth("login"); }
+  }, 0));
+})();
+</script>
+</body>
+</html>
