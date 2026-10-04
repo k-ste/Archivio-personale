@@ -38,7 +38,41 @@ html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 img{max-width:100%}
 [hidden]{display:none!important}
-.wrap{max-width:1120px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px));padding-block:calc(20px + env(safe-area-inset-top,0px)) calc(110px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px));padding-block:0 calc(110px + env(safe-area-inset-bottom,0px))}
+
+/* Barra in alto, resta visibile mentre scorri */
+.topbar{position:sticky;top:0;z-index:4;background:var(--bg);display:grid;gap:10px;padding:calc(12px + env(safe-area-inset-top,0px)) 0 10px;margin-bottom:6px}
+.tb-row{display:flex;align-items:center;gap:10px}
+.tb-row h1{font-size:24px;flex:none}
+.tb-count{font-family:var(--f-mono);font-size:12px;color:var(--muted);flex:1;min-width:0;padding-top:4px}
+.iconbtn{position:relative;flex:none;width:44px;height:44px;border-radius:12px;border:0;background:transparent;display:grid;place-items:center;color:var(--ink)}
+.iconbtn:hover{background:var(--surface)}
+.iconbtn.boxed{width:46px;height:46px;background:var(--surface);border:1px solid var(--line)}
+.badge{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
+
+/* Menu */
+.menu{display:grid;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.menu button{display:grid;gap:1px;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--line);padding:13px 14px}
+.menu button:last-child{border-bottom:0}
+.menu button:hover{background:var(--bg)}
+.menu button span{font-weight:600;font-size:15px}
+.menu button small{font-size:12.5px;color:var(--muted)}
+.menu button.danger span{color:var(--warn)}
+.menu-help{margin:0;padding:4px 14px 12px;font-size:13px;line-height:1.5}
+
+/* Scheda in sola lettura */
+.detail h2{margin:14px 0 10px;font-size:24px;line-height:1.2;overflow-wrap:anywhere}
+.d-main{display:block;width:100%;aspect-ratio:4/3;max-height:52vh;border:0;padding:0;border-radius:14px;overflow:hidden;background:var(--bg)}
+.d-main img{width:100%;height:100%;object-fit:contain;display:block}
+.d-strip{display:flex;gap:6px;overflow-x:auto;margin-top:8px;scrollbar-width:none}
+.d-strip button{flex:none;width:56px;height:56px;border-radius:8px;overflow:hidden;border:2px solid transparent;padding:0;background:var(--bg)}
+.d-strip button[aria-current="true"]{border-color:var(--accent)}
+.d-strip img{width:100%;height:100%;object-fit:contain;display:block}
+.d-nophoto{display:grid;place-items:center;gap:4px;aspect-ratio:3/1;border-radius:14px;background:var(--bg);color:var(--muted);font-size:13px}
+.dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;margin:6px 0 4px;font-size:15px}
+.dl dt{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding-top:3px}
+.dl dd{margin:0;overflow-wrap:anywhere;white-space:pre-line}
+.dl .tagrow{gap:6px}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -58,7 +92,6 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,6vw,40px);l
 .search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 12px}
 .search input{flex:1;min-width:0;border:0;background:transparent;padding:12px 0;outline:none}
 .search svg{flex:none;color:var(--muted)}
-.searchrow select{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 10px;height:46px;width:9.5rem;min-width:0}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;align-items:center}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:500;white-space:nowrap}
@@ -80,7 +113,7 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,6vw,40px);l
 .item-name{font-weight:600;font-size:16px;line-height:1.25;overflow-wrap:anywhere}
 .item-loc{font-family:var(--f-mono);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;overflow-wrap:anywhere}
 .tagrow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-.tag{font-family:var(--f-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;background:var(--tag);color:var(--tag-ink);padding:3px 8px 3px 14px;border-radius:3px 6px 6px 3px;position:relative;white-space:nowrap}
+.tag{font-family:var(--f-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;background:var(--tag);color:var(--tag-ink);padding:3px 8px 3px 14px;border-radius:3px 6px 6px 3px;position:relative;max-width:100%;overflow-wrap:anywhere}
 .tag::before{content:"";position:absolute;left:5px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:var(--surface)}
 .tag .t{opacity:.7}
 .when{font-size:11.5px;font-weight:600;background:var(--accent-soft);color:var(--ink);padding:2px 8px;border-radius:999px}
@@ -204,54 +237,88 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,6vw,40px);l
 <!-- App -->
 <div id="appView" hidden>
 <div class="wrap">
-  <header>
-    <div>
+  <header class="topbar">
+    <div class="tb-row">
       <h1>Ripostiglio</h1>
-      <p class="sub">Tutto quello che hai, dove si trova e quando lo usi.</p>
+      <span class="tb-count" id="count"></span>
+      <button class="iconbtn" id="menuBtn" aria-label="Menu" aria-haspopup="dialog">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
     </div>
-    <div class="stats" id="stats"></div>
-  </header>
-
-  <div class="banner" id="offline" hidden>Sei offline. L'archivio è solo online: riconnettiti per vedere e modificare i tuoi oggetti.</div>
-  <div class="banner info" id="installTip" hidden><span id="installText"></span><button class="linkbtn" id="installClose">Chiudi</button></div>
-
-  <div class="tools">
     <div class="searchrow">
       <div class="search">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input id="q" type="search" placeholder="Cerca nome, posto, note…" autocomplete="off" aria-label="Cerca">
       </div>
-      <select id="sort" aria-label="Ordina">
-        <option value="name">A–Z</option>
-        <option value="added">Aggiunti di recente</option>
-        <option value="boughtNew">Acquistati di recente</option>
-        <option value="boughtOld">Acquistati da più tempo</option>
-        <option value="cat">Per categoria</option>
-      </select>
+      <button class="iconbtn boxed" id="filterBtn" aria-label="Ordina e filtra" aria-haspopup="dialog">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        <span class="badge" id="filterBadge" hidden></span>
+      </button>
     </div>
     <div class="chips" id="cats" role="group" aria-label="Categorie"></div>
     <div class="chips" id="types" role="group" aria-label="Tipi" hidden></div>
-    <div class="chips" id="views" role="group" aria-label="Quando lo usi" hidden></div>
-  </div>
+  </header>
+
+  <div class="banner" id="offline" hidden>Sei offline. L'archivio è solo online: riconnettiti per vedere e modificare i tuoi oggetti.</div>
+  <div class="banner info" id="installTip" hidden><span id="installText"></span><span style="display:flex;gap:14px"><button class="linkbtn" id="installTipBtn" hidden>Installa</button><button class="linkbtn" id="installClose">Chiudi</button></span></div>
 
   <main id="list"></main>
-
-  <div class="foot">
-    <span id="footnote"></span>
-    <span class="links">
-      <button class="linkbtn" id="installBtn" hidden>Installa l'app</button>
-      <button class="linkbtn" id="editCatsBtn">Modifica categorie</button>
-      <button class="linkbtn" id="editWhenBtn">Modifica “Quando lo usi”</button>
-      <button class="linkbtn" id="exportBtn">Esporta in CSV</button>
-      <button class="linkbtn" id="logoutBtn">Esci</button>
-    </span>
-  </div>
 </div>
 
 <button class="fab" id="addBtn" aria-label="Aggiungi oggetto">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
   Aggiungi
 </button>
+</div>
+
+<!-- Scheda in sola lettura -->
+<div class="scrim" id="viewScrim" hidden>
+  <div class="sheet detail" role="dialog" aria-modal="true" aria-labelledby="dName">
+    <div id="dPhotos"></div>
+    <h2 id="dName"></h2>
+    <div id="dBody"></div>
+    <div class="sheet-actions">
+      <div class="right">
+        <button type="button" class="btn ghost" id="dClose">Chiudi</button>
+        <button type="button" class="btn primary" id="dEdit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>Modifica
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ordina e filtra -->
+<div class="scrim" id="filterScrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="filterTitle">
+    <h2 id="filterTitle">Ordina e filtra</h2>
+    <div class="form">
+      <div class="lbl">Ordina per<div class="pick" id="sortPick"></div></div>
+      <div class="lbl">Quando lo usi<div class="pick" id="whenPick"></div></div>
+    </div>
+    <div class="sheet-actions">
+      <button type="button" class="btn ghost" id="filterReset">Azzera filtri</button>
+      <div class="right"><button type="button" class="btn primary" id="filterDone">Fatto</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Menu -->
+<div class="scrim" id="menuScrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+    <h2 id="menuTitle">Ripostiglio</h2>
+    <p class="intro" id="menuInfo"></p>
+    <nav class="menu">
+      <button type="button" id="installBtn" hidden><span>Installa l'app</span><small>Aggiungila alla schermata Home</small></button>
+      <button type="button" id="installHelpBtn" hidden><span>Come installare l'app</span><small>Istruzioni per il tuo telefono</small></button>
+      <p class="hint menu-help" id="installHelp" hidden></p>
+      <button type="button" id="editCatsBtn"><span>Categorie e tipi</span><small>Rinomina, aggiungi o togli</small></button>
+      <button type="button" id="editWhenBtn"><span>Quando lo usi</span><small>Modifica l'elenco delle voci</small></button>
+      <button type="button" id="exportBtn"><span>Esporta in CSV</span><small>Copia di sicurezza dell'elenco</small></button>
+      <button type="button" id="logoutBtn" class="danger"><span>Esci</span><small id="menuEmail"></small></button>
+    </nav>
+    <div class="sheet-actions"><div class="right"><button type="button" class="btn ghost" id="menuClose">Chiudi</button></div></div>
+  </div>
 </div>
 
 <!-- Scheda oggetto -->
@@ -384,7 +451,6 @@ const prefs = {
   set(k, v){ try { localStorage.setItem("ripostiglio-pref-" + k, JSON.stringify(v)); } catch {} }
 };
 sort = prefs.get("sort", "name");
-$("sort").value = sort;
 
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function uuid(){ return crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)); }
@@ -576,14 +642,10 @@ function filtered(){
   return out.sort(by);
 }
 
+const SORTS = [["name","A–Z"],["added","Aggiunti di recente"],["boughtNew","Acquistati di recente"],["boughtOld","Acquistati da più tempo"],["cat","Per categoria"]];
+
 function render(){
   if ($("appView").hidden) return;
-  const places = new Set(items.map(i => (i.loc||"").split("·")[0].trim()).filter(Boolean)).size;
-  const withPhoto = items.filter(i => (i.photos||[]).length).length;
-  $("stats").innerHTML = `
-    <div class="stat"><b>${items.length}</b><span>Oggetti</span></div>
-    <div class="stat"><b>${places}</b><span>Luoghi</span></div>
-    <div class="stat"><b>${withPhoto}</b><span>Con foto</span></div>`;
 
   const cc = {}, tc = {};
   items.forEach(i => { const c = catOf(i); if (c) { cc[c.id] = (cc[c.id]||0) + 1; if (i.type) tc[i.type] = (tc[i.type]||0) + 1; } });
@@ -598,16 +660,13 @@ function render(){
   $("types").innerHTML = usedTypes.length ? `<span class="lab">Tipo</span><button class="chip" data-ftype="" aria-pressed="${!fType}">Tutti</button>` +
     usedTypes.map(t => `<button class="chip" data-ftype="${esc(t.id)}" aria-pressed="${fType===t.id}">${esc(t.label)}<span class="n">${tc[t.id]}</span></button>`).join("") : "";
   $("types").hidden = !usedTypes.length;
-  const wc = {}; items.forEach(i => (i.when||[]).forEach(w => wc[w] = (wc[w]||0) + 1));
-  const usedWhen = whenList.filter(w => wc[w.id]);
-  if (fWhen && !usedWhen.some(w => w.id === fWhen)) fWhen = "";
-  $("views").innerHTML = usedWhen.length ? `<span class="lab">Quando</span><button class="chip" data-fwhen="" aria-pressed="${!fWhen}">Sempre</button>` +
-    usedWhen.map(w => `<button class="chip" data-fwhen="${esc(w.id)}" aria-pressed="${fWhen===w.id}">${esc(w.label)}<span class="n">${wc[w.id]}</span></button>`).join("") : "";
-  $("views").hidden = !usedWhen.length;
+  if (fWhen && !whenList.some(w => w.id === fWhen)) fWhen = "";
+  $("filterBadge").hidden = !fWhen && sort === "name";
 
   $("locs").innerHTML = [...new Set(items.map(i => i.loc).filter(Boolean))].map(l => `<option value="${esc(l)}">`).join("");
 
   const list = $("list");
+  let shown = 0;
   if (!loaded){
     list.innerHTML = `<div class="empty"><h2>Apro il ripostiglio…</h2><p>Sto caricando i tuoi oggetti.</p></div>`;
   } else if (!items.length){
@@ -617,24 +676,28 @@ function render(){
       <div class="row"><button class="btn primary" data-act="add">Aggiungi il primo oggetto</button><button class="btn ghost" data-act="examples">Carica 5 esempi</button></div>
     </div>`;
   } else {
-    const rows = filtered();
+    const rows = filtered(); shown = rows.length;
     list.innerHTML = rows.length ? `<div class="grid">${rows.map(card).join("")}</div>`
       : `<div class="empty"><h2>Nessun risultato</h2><p>Nessun oggetto corrisponde a ricerca e filtri attuali.</p><div class="row"><button class="btn ghost" data-act="clear">Azzera filtri</button></div></div>`;
   }
-  $("footnote").textContent = userEmail ? `Archivio online · ${userEmail}` : "";
+  $("count").textContent = !loaded ? "" : shown === items.length ? `${items.length} ${items.length === 1 ? "oggetto" : "oggetti"}` : `${shown} di ${items.length}`;
+
+  if (!$("viewScrim").hidden) renderDetail();
+  if (!$("filterScrim").hidden) renderFilter();
 }
 
 function card(it){
   const ph = it.photos || [];
-  const thumb = ph.length
-    ? `<button class="thumb" data-view-photos="${it.id}" aria-label="Guarda le foto di ${esc(it.name)}">${urlOf(ph[0]) ? `<img src="${esc(urlOf(ph[0]))}" alt="" loading="lazy">` : ""}${ph.length > 1 ? `<span class="count">${ph.length}</span>` : ""}</button>`
-    : `<button class="thumb" data-edit="${it.id}" aria-label="Aggiungi foto a ${esc(it.name)}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>`;
+  const u = ph.length ? urlOf(ph[0]) : "";
+  const thumb = `<button class="thumb" data-view="${it.id}" tabindex="-1" aria-hidden="true">${
+    ph.length ? `${u ? `<img src="${esc(u)}" alt="" loading="lazy">` : ""}${ph.length > 1 ? `<span class="count">${ph.length}</span>` : ""}`
+              : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>`}</button>`;
   const c = catOf(it), t = typeOf(it);
   const whens = (it.when || []).map(whenLabel).filter(Boolean);
   return `<article class="item">
     ${thumb}
     <div class="body">
-      <button class="item-main" data-edit="${it.id}" aria-label="Modifica ${esc(it.name)}">
+      <button class="item-main" data-view="${it.id}" aria-label="Apri ${esc(it.name)}">
         <span class="item-name">${esc(it.name)}</span>
         ${it.loc ? `<span class="item-loc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>${esc(it.loc)}</span>` : ""}
       </button>
@@ -646,6 +709,73 @@ function card(it){
     </div>
   </article>`;
 }
+
+/* ---------- scheda in sola lettura ---------- */
+let viewing = null, viewIdx = 0;
+function openDetail(id){ viewing = id; viewIdx = 0; renderDetail(); $("viewScrim").hidden = false; }
+function closeDetail(){ $("viewScrim").hidden = true; viewing = null; }
+function renderDetail(){
+  const it = items.find(x => x.id === viewing);
+  if (!it) { closeDetail(); return; }
+  const ph = it.photos || [];
+  if (viewIdx >= ph.length) viewIdx = 0;
+  $("dPhotos").innerHTML = ph.length
+    ? `<button class="d-main" data-lb="${viewIdx}" aria-label="Apri la foto a schermo intero">${urlOf(ph[viewIdx]) ? `<img src="${esc(urlOf(ph[viewIdx]))}" alt="Foto ${viewIdx+1} di ${esc(it.name)}">` : ""}</button>` +
+      (ph.length > 1 ? `<div class="d-strip">${ph.map((p, i) => `<button data-dphoto="${i}" aria-current="${i===viewIdx}" aria-label="Foto ${i+1}">${urlOf(p) ? `<img src="${esc(urlOf(p))}" alt="">` : ""}</button>`).join("")}</div>` : "")
+    : `<div class="d-nophoto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Nessuna foto</div>`;
+  $("dName").textContent = it.name;
+  const c = catOf(it), t = typeOf(it);
+  const whens = (it.when || []).map(whenLabel).filter(Boolean);
+  const rows = [
+    ["Categoria", `<div class="tagrow"><span class="tag">${c ? esc(c.label) : "Senza categoria"}${t ? ` <span class="t">· ${esc(t.label)}</span>` : ""}</span></div>`],
+    it.loc && ["Dove", esc(it.loc)],
+    whens.length && ["Quando", `<div class="tagrow">${whens.map(w => `<span class="when">${esc(w)}</span>`).join("")}</div>`],
+    it.bought && ["Acquisto", esc(boughtText(it.bought).replace(/^Acquistato /, ""))],
+    it.notes && ["Note", esc(it.notes)]
+  ].filter(Boolean);
+  $("dBody").innerHTML = `<dl class="dl">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`;
+}
+$("dClose").onclick = closeDetail;
+$("viewScrim").addEventListener("click", e => { if (e.target === $("viewScrim")) closeDetail(); });
+$("dEdit").onclick = () => { const it = items.find(x => x.id === viewing); closeDetail(); if (it) openSheet(it); };
+
+/* ---------- ordina e filtra ---------- */
+function renderFilter(){
+  $("sortPick").innerHTML = SORTS.map(([v, l]) => `<button type="button" class="chip" data-sort="${v}" aria-pressed="${sort===v}">${l}</button>`).join("");
+  const wc = {}; items.forEach(i => (i.when||[]).forEach(w => wc[w] = (wc[w]||0) + 1));
+  $("whenPick").innerHTML = `<button type="button" class="chip" data-fwhen="" aria-pressed="${!fWhen}">Sempre</button>` +
+    whenList.filter(w => wc[w.id]).map(w => `<button type="button" class="chip" data-fwhen="${esc(w.id)}" aria-pressed="${fWhen===w.id}">${esc(w.label)}<span class="n">${wc[w.id]}</span></button>`).join("");
+}
+$("filterBtn").onclick = () => { renderFilter(); $("filterScrim").hidden = false; };
+$("filterDone").onclick = () => $("filterScrim").hidden = true;
+$("filterReset").onclick = () => { fWhen = ""; sort = "name"; prefs.set("sort", sort); render(); };
+$("filterScrim").addEventListener("click", e => { if (e.target === $("filterScrim")) $("filterScrim").hidden = true; });
+
+/* ---------- menu ---------- */
+function openMenu(){
+  const places = new Set(items.map(i => (i.loc||"").split("·")[0].trim()).filter(Boolean)).size;
+  const withPhoto = items.filter(i => (i.photos||[]).length).length;
+  $("menuInfo").textContent = `${items.length} oggetti · ${places} luoghi · ${withPhoto} con foto`;
+  $("menuEmail").textContent = userEmail;
+  $("installBtn").hidden = !installEvt;
+  $("installHelpBtn").hidden = !!installEvt || standalone;
+  $("installHelp").hidden = true;
+  $("menuScrim").hidden = false;
+}
+function closeMenu(){ $("menuScrim").hidden = true; }
+$("menuBtn").onclick = openMenu;
+$("menuClose").onclick = closeMenu;
+$("menuScrim").addEventListener("click", e => { if (e.target === $("menuScrim")) closeMenu(); });
+$("installHelpBtn").onclick = () => {
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const android = /android/i.test(navigator.userAgent);
+  $("installHelp").textContent = ios
+    ? "Apri questa pagina in Safari, tocca Condividi (il quadrato con la freccia in su) e scegli “Aggiungi alla schermata Home”."
+    : android
+      ? "Apri questa pagina in Chrome, tocca il menu ⋮ in alto a destra e scegli “Installa app” (o “Aggiungi a schermata Home” → Installa). Se non compare, ricarica la pagina e attendi qualche secondo."
+      : "In Chrome o Edge clicca l'icona di installazione nella barra dell'indirizzo, oppure menu ⋮ → “Installa Ripostiglio”.";
+  $("installHelp").hidden = false;
+};
 
 /* ---------- scheda oggetto ---------- */
 function renderWhenPick(){
@@ -710,7 +840,7 @@ $("form").addEventListener("submit", async e => {
   sessionUploads = [];
   closeSheet(true);
   const ok = await saveItem(it);
-  if (ok) { removePhotos(removed); toast(prev ? "Modifiche salvate" : "Oggetto aggiunto"); }
+  if (ok) { removePhotos(removed); toast(prev ? "Modifiche salvate" : "Oggetto aggiunto"); if (prev) openDetail(it.id); }
   else removePhotos(uploadsThisTime);
 });
 $("cancelBtn").onclick = () => closeSheet(false);
@@ -782,7 +912,7 @@ $("catSave").onclick = async () => {
   try { await saveSettings(); toast("Categorie aggiornate"); }
   catch (e) { cats = prevCats; render(); toast(netError(e)); }
 };
-$("editCatsBtn").onclick = openCatEditor;
+$("editCatsBtn").onclick = () => { closeMenu(); openCatEditor(); };
 $("editCatsInline").onclick = openCatEditor;
 
 /* ---------- editor "Quando lo usi" ---------- */
@@ -817,12 +947,12 @@ $("whenSave").onclick = async () => {
   try { await saveSettings(); toast("Elenco aggiornato"); }
   catch (e) { whenList = prevWhen; render(); toast(netError(e)); }
 };
-$("editWhenBtn").onclick = openWhenEditor;
+$("editWhenBtn").onclick = () => { closeMenu(); openWhenEditor(); };
 $("editWhenInline").onclick = openWhenEditor;
 
 /* ---------- visualizzatore foto ---------- */
 let lbPhotos = [], lbIdx = 0;
-function openLb(it){ lbPhotos = it.photos || []; lbIdx = 0; $("lbTitle").textContent = it.name; showLb(); $("lb").hidden = false; }
+function openLb(it, idx = 0){ lbPhotos = it.photos || []; lbIdx = idx; $("lbTitle").textContent = it.name; showLb(); $("lb").hidden = false; }
 function showLb(){
   const u = urlOf(lbPhotos[lbIdx]);
   if (u) $("lbImg").src = u; else $("lbImg").removeAttribute("src");
@@ -843,20 +973,24 @@ document.addEventListener("keydown", e => {
   if (!$("catScrim").hidden) $("catScrim").hidden = true;
   else if (!$("whenScrim").hidden) $("whenScrim").hidden = true;
   else if (!$("scrim").hidden) closeSheet(false);
+  else if (!$("viewScrim").hidden) closeDetail();
+  else if (!$("filterScrim").hidden) $("filterScrim").hidden = true;
+  else if (!$("menuScrim").hidden) closeMenu();
 });
 
 /* ---------- eventi pagina ---------- */
 $("addBtn").onclick = () => openSheet(null);
 $("q").addEventListener("input", e => { query = e.target.value; render(); });
-$("sort").addEventListener("change", e => { sort = e.target.value; prefs.set("sort", sort); render(); });
 document.addEventListener("click", async e => {
   const t = e.target.closest("button"); if (!t) return;
   const d = t.dataset;
   if (d.fcat !== undefined) { fCat = d.fcat; fType = ""; render(); }
   else if (d.ftype !== undefined) { fType = d.ftype; render(); }
   else if (d.fwhen !== undefined) { fWhen = d.fwhen; render(); }
-  else if (d.edit) openSheet(items.find(x => x.id === d.edit));
-  else if (d.viewPhotos) { const it = items.find(x => x.id === d.viewPhotos); if (it) openLb(it); }
+  else if (d.view) openDetail(d.view);
+  else if (d.lb != null) { const it = items.find(x => x.id === viewing); if (it) openLb(it, Number(d.lb)); }
+  else if (d.dphoto != null) { viewIdx = Number(d.dphoto); renderDetail(); }
+  else if (d.sort) { sort = d.sort; prefs.set("sort", sort); render(); }
   else if (d.pickwhen) { const id = d.pickwhen; draftWhen = draftWhen.includes(id) ? draftWhen.filter(x => x !== id) : [...draftWhen, id]; renderWhenPick(); }
   else if (d.rmphoto != null) { draftPhotos.splice(Number(d.rmphoto), 1); renderPhotos(); }
   else if (d.wdel != null) { whenDraft.splice(Number(d.wdel), 1); renderWhenRows(); }
@@ -875,6 +1009,7 @@ document.addEventListener("click", async e => {
 });
 
 $("exportBtn").onclick = () => {
+  closeMenu();
   const head = ["Nome","Categoria","Tipo","Posizione","Quando lo usi","Data di acquisto","Foto","Note"];
   const cell = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
   const rows = [...items].sort((a,b) => a.name.localeCompare(b.name,"it"))
@@ -891,12 +1026,20 @@ $("exportBtn").onclick = () => {
 /* ---------- installazione come app ---------- */
 let installEvt = null;
 const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
-window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; $("installBtn").hidden = false; });
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); installEvt = e; $("installBtn").hidden = false;
+  if (!prefs.get("installTipClosed", false)) {
+    $("installText").textContent = "Puoi installare Ripostiglio come app, con la sua icona nella schermata Home.";
+    $("installTipBtn").hidden = false; $("installTip").hidden = false;
+  }
+});
+$("installTipBtn").onclick = () => { $("installTip").hidden = true; $("installBtn").click(); };
 $("installBtn").onclick = async () => {
   if (!installEvt) return;
+  closeMenu();
   installEvt.prompt(); await installEvt.userChoice; installEvt = null; $("installBtn").hidden = true;
 };
-window.addEventListener("appinstalled", () => { $("installBtn").hidden = true; toast("App installata"); });
+window.addEventListener("appinstalled", () => { $("installBtn").hidden = true; $("installTip").hidden = true; toast("App installata"); });
 function maybeInstallTip(){
   if (standalone || prefs.get("installTipClosed", false)) return;
   const ua = navigator.userAgent;
@@ -974,6 +1117,7 @@ $("authForm").addEventListener("submit", async e => {
   } finally { btn.disabled = false; }
 });
 $("logoutBtn").onclick = async () => {
+  closeMenu();
   await sb.auth.signOut();
 };
 

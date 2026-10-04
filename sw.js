@@ -1,7 +1,7 @@
 // Service worker di Ripostiglio.
 // Tiene in cache SOLO i file dell'app (pagina, icone, libreria), così si apre come un'app.
 // I dati dell'archivio e le foto arrivano da Supabase (un altro dominio) e non vengono mai salvati qui.
-const CACHE = "ripostiglio-app-v1";
+const CACHE = "ripostiglio-app-v2";
 const SHELL = [
   "./", "./index.html", "./config.js", "./supabase.js", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
